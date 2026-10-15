@@ -1,0 +1,10 @@
+{
+  "name": "rajat-shivani-invitation",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.34.3",
+  "scripts": {
+    "dev": "python3 server.py 3000",
+    "start": "python3 server.py 3000"
+  }
+}
