@@ -71,6 +71,89 @@ const guest = new URLSearchParams(location.search).get("to");
 if (guest) $("#guestLine").textContent = `Dear ${guest.slice(0, 60)}`;
 
 /* =========================================================
+   Background Music Controller
+   ========================================================= */
+const bgMusic = $("#bgMusic");
+const musicToggle = $("#musicToggle");
+let isMusicPlaying = false;
+let audioFadeTimer = null;
+
+function fadeInAudio(targetVolume = 0.7, duration = 1800) {
+  if (!bgMusic) return;
+  clearInterval(audioFadeTimer);
+  const startVolume = bgMusic.volume;
+  const interval = 40;
+  const step = (targetVolume - startVolume) / (duration / interval);
+
+  audioFadeTimer = setInterval(() => {
+    if (bgMusic.volume + step >= targetVolume) {
+      bgMusic.volume = targetVolume;
+      clearInterval(audioFadeTimer);
+    } else {
+      bgMusic.volume = Math.min(targetVolume, bgMusic.volume + step);
+    }
+  }, interval);
+}
+
+function fadeOutAudio(duration = 700) {
+  if (!bgMusic) return;
+  clearInterval(audioFadeTimer);
+  const interval = 40;
+  const step = bgMusic.volume / (duration / interval);
+
+  audioFadeTimer = setInterval(() => {
+    if (bgMusic.volume - step <= 0.05) {
+      bgMusic.volume = 0;
+      bgMusic.pause();
+      clearInterval(audioFadeTimer);
+    } else {
+      bgMusic.volume = Math.max(0, bgMusic.volume - step);
+    }
+  }, interval);
+}
+
+function playMusic() {
+  if (!bgMusic) return;
+  bgMusic.volume = 0;
+  const playPromise = bgMusic.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        isMusicPlaying = true;
+        musicToggle?.classList.add("playing");
+        fadeInAudio(0.7, 1800);
+      })
+      .catch((err) => {
+        console.warn("Background audio playback waiting for interaction or restricted:", err);
+        isMusicPlaying = false;
+        musicToggle?.classList.remove("playing");
+      });
+  }
+}
+
+function pauseMusic() {
+  if (!bgMusic) return;
+  fadeOutAudio(600);
+  isMusicPlaying = false;
+  musicToggle?.classList.remove("playing");
+}
+
+function toggleMusic() {
+  if (bgMusic.paused || !isMusicPlaying) {
+    playMusic();
+  } else {
+    pauseMusic();
+  }
+}
+
+if (musicToggle) {
+  musicToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleMusic();
+  });
+}
+
+/* =========================================================
    STAGE 1 · Envelope opening
    ========================================================= */
 const intro = $("#intro");
@@ -82,6 +165,9 @@ let opened = false;
 async function openEnvelope() {
   if (opened) return;
   opened = true;
+
+  // Start royal background music smoothly
+  playMusic();
 
   // 1 · the seal glows for a moment
   intro.classList.add("sealing");

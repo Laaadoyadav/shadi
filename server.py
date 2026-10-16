@@ -18,6 +18,7 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         ".webp": "image/webp",
         ".woff2": "font/woff2",
         ".js": "text/javascript",
+        ".mp3": "audio/mpeg",
     }
 
     def end_headers(self):
